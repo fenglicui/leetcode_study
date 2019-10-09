@@ -1604,6 +1604,60 @@ public class Main {
         return flag;
     }
 
+    // leetcode 颜色分类
+    //遍历两遍数组
+//    public void sortColors(int[] nums) {
+//        int[] numsofcolor = new int[3];
+//        for (int i = 0; i < nums.length; i++){
+//            if (nums[i] == 0) numsofcolor[0]++;
+//            if (nums[i] == 1) numsofcolor[1]++;
+//            if (nums[i] == 2) numsofcolor[2]++;
+//        }
+//
+//        int k = 0;
+//        for (int i = 0; i < 3; i++) {
+//            for (int j = 0; j < numsofcolor[i]; j++) {
+//                nums[k] = i;
+//                k++;
+//            }
+//        }
+//    }
+
+//    遍历一次，常数空间
+
+    public void swap(int[] a, int i, int j){
+        int tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+    }
+
+    /**
+     * 按照0 1 2排序，如果是0，和左边进行交换，如果是2，和右边进行交换，1的话则往右走
+     * @param nums
+     */
+    public void sortColors(int[] nums) {
+        int l = -1;
+        int r = nums.length;
+        int i = 0;
+        while(i < r){
+            if (nums[i] == 0){
+                l++;
+                // 将0交换到最左边
+                swap(nums, i, l);
+                // System.out.println("l: " + l + ", i: "+ i);
+                i++;
+            }
+            else if (nums[i] == 1)
+                i++;
+            else if (nums[i] == 2){
+                r--;
+                // 将2交换到最右边
+                swap(nums, i, r);
+                // System.out.println("r: " + r + ", i: " + i);
+            }
+        }
+    }
+
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
 //        int k = 3;
@@ -1629,7 +1683,7 @@ public class Main {
 //        int[] nums1 = new int[]{1, 2};
 //        int[] nums2 = new int[]{3, 4};
 //       System.out.println(findMedianSortedArrays(nums1, nums2));
-
+//
 //        int[] nums = new int[]{7, 1, 5, 3, 6, 4};
 //        System.out.println(maxProfit(nums));
 
@@ -1660,7 +1714,8 @@ public class Main {
 //        List<Integer> nums = findNumOfValidWords(words, puzzles);
 //        System.out.println(nums.toString());
 
-//        int[] nums1 = {0};
+//        int[] nums1 = {0}
+
 //        int[] nums2 = {1};
 //        int m = 0, n = 1;
 //        merge(nums1, m, nums2, n);
