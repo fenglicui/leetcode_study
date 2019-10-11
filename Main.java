@@ -1658,6 +1658,74 @@ public class Main {
         }
     }
 
+    // leetcode (中级算法-排序和搜索) 前k个元素
+    // 解法一：排序算法
+    // 时间复杂度 O(nlogn) 空间复杂度O(n)
+//    public List<Integer> topKFrequent(int[] nums, int k) {
+//
+//        // 统计元素的频率
+//        HashMap<Integer, Integer> freqMap = new HashMap<>();
+//        for (Integer num : nums){
+//            freqMap.put(num, freqMap.getOrDefault(num, 0) + 1);
+//        }
+//
+//        //对元素按照频率进行降序排序
+//        // 将map转换为list，使用Collections.sort函数
+//        List<Map.Entry<Integer, Integer>> list = new ArrayList<>(freqMap.entrySet());
+//        Collections.sort(list, new Comparator<Map.Entry<Integer, Integer>>() {
+//            @Override
+//            public int compare(Map.Entry<Integer, Integer> o1, Map.Entry<Integer, Integer> o2) {
+//                return o2.getValue() - o1.getValue();
+//            }
+//        });
+//
+//        // 取出前k个元素
+//        List<Integer> res = new ArrayList<>();
+//        int count = 0;
+//        for (Map.Entry<Integer, Integer> entry : list){
+//            res.add(entry.getKey());
+//            if (++count == k)
+//                break;
+//        }
+//        return res;
+//    }
+
+    // 解法二：堆排序 时间复杂度O(NlogK)
+    // 维持一个大小为k保存前k个元素的最小堆
+    // 如果当前元素的频率大于堆顶元素的频率，则删除堆顶元素，插入当前元素
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> freqmap = new HashMap<>();
+        // 统计元素出现的频率
+        for (Integer num : nums){
+            freqmap.put(num, freqmap.getOrDefault(num, 0) + 1);
+        }
+
+        // 构造前k个最大频率的最小堆（升序排列）
+        PriorityQueue<Integer> pq = new PriorityQueue<>(
+                new Comparator<Integer>() {
+                    @Override
+                    public int compare(Integer o1, Integer o2) {
+                        return freqmap.get(o1) - freqmap.get(o2);
+                    }
+                }
+        );
+        for (Integer key: freqmap.keySet()){
+            if (pq.size() < k){
+                pq.add(key);
+            }else if (freqmap.get(key) > freqmap.get(pq.peek())){
+                pq.remove();
+                pq.add(key);
+            }
+        }
+
+        // 取出最小堆中元素
+        List<Integer> res = new ArrayList<>();
+        while(!pq.isEmpty()){
+            res.add(pq.remove());
+        }
+        return res;
+    }
+
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
 //        int k = 3;
