@@ -1726,6 +1726,90 @@ public class Main {
         return res;
     }
 
+
+    // leetcode 数组中的第k个最大元素
+
+//     // 冒泡排序
+//    public int findKthLargest(int[] nums, int k) {
+//        int len = nums.length;
+//        for (int i = 0; i < k; i++){
+//            int max_i = 0;
+//            for (int j = 0; j < len - i; j++){
+//                if (nums[j] > nums[max_i])
+//                    max_i = j;
+//            }
+//            // System.out.println(nums[max_i]);
+//            int tmp = nums[len-1 - i];
+//            nums[len-1 - i] = nums[max_i];
+//            nums[max_i] = tmp;
+//        }
+//        return nums[len - k];
+//    }
+//
+//    // 最小堆
+//    public int findKthLargest(int[] nums, int k) {
+//        PriorityQueue<Integer> pq = new PriorityQueue<>();
+//        for (int i = 0; i < nums.length; i++){
+//            if (i < k)
+//                pq.add(nums[i]);
+//            else if (nums[i] >= pq.peek()){
+//                pq.remove();
+//                pq.add(nums[i]);
+//            }
+//        }
+//        return pq.peek();
+//    }
+
+    // java自带库函数
+    public int findKthLargest(int[] nums, int k) {
+        Arrays.sort(nums);
+        return nums[nums.length - k];
+    }
+
+    // leetcode 寻找峰值
+    // 二分查找
+    public int findPeakElement(int[] nums) {
+        if (nums.length == 1)
+            return 0;
+        if (nums.length == 2)
+            return nums[0] > nums[1] ? 0 : 1;
+        int l = 0, r = nums.length-1;
+        while(l <= r){
+            int mid = (l + r) / 2;
+            // System.out.println(mid);
+            if ( (mid == 0 || mid > 0 && nums[mid] > nums[mid-1]) && (mid == nums.length-1 || nums[mid] > nums[mid+1]) )
+                return mid;
+            if (mid > 0 && nums[mid] < nums[mid-1])
+                r = mid == 0 ? 0 : mid - 1;
+            else l = mid == nums.length - 1 ? mid : mid + 1;
+        }
+        return l;
+    }
+
+    // leetcode 在排序数组中查找元素的第一个和最后一个位置
+    // 二分查找
+    public int[] searchRange(int[] nums, int target) {
+        int l = 0, r = nums.length-1;
+        int[] res = new int[2];
+        res[0] = res[1] = -1;
+        if (nums.length == 0)
+            return res;
+        while(l <= r){
+            int mid = (l + r) / 2;
+            if (nums[mid] == target){
+                res[0] = res[1] = mid;
+                while(mid > 0 && nums[--mid] == target)res[0] = mid;
+                mid = (l + r) / 2;
+                while(mid < nums.length-1 && nums[++mid] == target)res[1] = mid;
+                return res;
+            }
+            if (nums[mid] > target)
+                r = mid - 1;
+            else l = mid + 1;
+        }
+        return res;
+    }
+
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
 //        int k = 3;
