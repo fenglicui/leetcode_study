@@ -1810,6 +1810,110 @@ public class Main {
         return res;
     }
 
+    // leetcode 搜索二维矩阵II
+    // 其实肯定是从一个角上开始搜索，必须是左上角吗？左上角元素是最小的，下边和右边都是更大的元素，右下角同理是最大的元素。
+    // 所以选定从右上角（也可以是左下角）开始搜索，这样左边是更小的元素，下边是更大的元素，两边大小不一样，可以进行搜索。
+    // 从矩阵右上角开始搜索，比target大了就向左走，比target小了就向右走，直到找到或者越过边界
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if (matrix.length == 0)
+            return false;
+        int r = 0;
+        int c = matrix[0].length - 1;
+        while (r < matrix.length && c >= 0) {
+            if (matrix[r][c] == target)
+                return true;
+            if (matrix[r][c] > target)
+                c--;
+            else r++;
+        }
+        return false;
+    }
+
+    // leetcode 跳跃游戏
+    // 用一个int整型记录能到达的最后位置，不断更新
+    public boolean canJump(int[] nums) {
+        if (nums.length < 2)
+            return true;
+        int nextmax = nums[0];
+        for (int i = 0; i < nums.length; i++) {
+            nextmax = Math.max(nextmax, i + nums[i]);
+            if (nextmax >= nums.length - 1)
+                return true;
+            // nums[i] 不是正数 表示不能再往后走 并且 最多能走到当前位置
+            if (nums[i] <= 0 && nextmax <= i)
+                return false;
+        }
+        return false;
+    }
+
+    // leetcode 零钱兑换 动态规划解法
+    // 兑换n元零钱的方法：兑换n-1元零钱+1元硬币，兑换n-2元零钱+2元硬币，...，兑换1元零钱+n-1元硬币，兑换0元零钱+n元硬币
+    public int coinChange(int[] coins, int amount) {
+        if (amount == 0)
+            return 0;
+        if (coins.length == 0 || amount < 0)
+            return -1;
+
+        Arrays.sort(coins);
+        //兑换零钱所需硬币数量的数组
+        int[] dp = new int[amount + 1];
+        dp[0] = 0;
+        dp[1] = coins[0] == 1 ? 1 : -1;
+        //从兑换2元硬币，到兑换n元，动态规划
+        // 兑换i元硬币的情况下
+        for (int i = 2; i <= amount; i++) {
+            // 从小到大遍历一遍硬币
+            dp[i] = -1;
+            // 记录暂时的最小值
+            int tmp = amount;
+            for (int j = 0; j < coins.length; j++) {
+                // 如果当前硬币可用 并且 可以兑换i-coins[j]的零钱
+                if (coins[j] <= i && dp[i - coins[j]] != -1) {
+                    // 如果找到了至少一种有效的兑换方式，更新dp值
+                    if (dp[i - coins[j]] < tmp) {
+                        tmp = dp[i - coins[j]];
+                        dp[i] = tmp + 1;
+                    }
+                }
+            }
+            // System.out.println("dp["+i+"]:" + dp[i]);
+        }
+        return dp[amount];
+    }
+
+    // leetcode 最长上升子序列
+    // 动态规划+二分查找
+    public int lengthOfLIS(int[] nums) {
+        if (nums.length <= 1)
+            return nums.length;
+        // 维持一个最长的上升子序列
+        List<Integer> maxseq = new ArrayList<>();
+        maxseq.add(nums[0]);
+        for (int i = 1; i < nums.length; i++) {
+            // 当前值比最大元素大，直接加进去
+            if (maxseq.get(maxseq.size() - 1) < nums[i])
+                maxseq.add(nums[i]);
+            else {
+                // 否则的话，二分查找maxseq，找到第一个比当前大的最小的元素，然后进行替换
+                int l = 0, r = maxseq.size() - 1;
+                int mid = (l + r) / 2;
+                while (l < r) {
+                    mid = (l + r) / 2;
+                    // if (maxseq.get(mid) > nums[i] && (mid == 0 || maxseq.get(mid-1) < nums[i]))
+                    //     break;
+                    // 这里不能有等号，严格的上升子序列
+                    if (maxseq.get(mid) < nums[i])
+                        l = mid + 1;
+                    else r = mid;
+                }
+                // 这个地方要设置成对l位置赋值，不然会报错，为什么呢，你看最终l是mid右边的那个，是大于nums[i]的
+                maxseq.set(l, nums[i]);
+            }
+        }
+        return maxseq.size();
+    }
+
+
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
 //        int k = 3;
