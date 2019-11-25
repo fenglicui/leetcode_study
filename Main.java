@@ -1913,6 +1913,184 @@ public class Main {
         return maxseq.size();
     }
 
+    // leetcode Excel表列序号
+    // "AB" 直接换算成26进制
+    public int titleToNumber(String s) {
+        int res = 0;
+        for (int i = 0; i < s.length(); i++) {
+            res = res * 26 + s.charAt(i) - 'A' + 1;
+        }
+        return res;
+    }
+
+    // leetcode Pow(x, n)
+    // 二分思想递归，复杂度O(log2n)
+    public double myPow(double x, int n) {
+        if (n == -1) return 1. / x;
+        if (n == 1) return x;
+        if (n == 0) return 1;
+        double half = myPow(x, n / 2);
+        double rest = myPow(x, n % 2);
+        return half * half * rest;
+    }
+
+    // leetcode 29 两数相除
+    // 要求不能用乘法 除法和 mod 运算符。
+    // 被除数和除数全部转换成负数，用负数做减法，大于号变小于，
+    // 避免了-2147483648不能取绝对值的问题
+    public int divide(int dividend, int divisor) {
+        int sign = 1;
+        int res = -1;
+        int n = -1;
+        if (dividend > 0) {
+            sign = opposite(sign);
+            dividend = opposite(dividend);
+        }
+        if (divisor > 0) {
+            sign = opposite(sign);
+            divisor = opposite(divisor);
+        }
+
+        // 被除数绝对值小于除数，负数情况下为被除数大于除数，直接返回0
+        if (dividend > divisor) return 0;
+
+        int div = divisor;
+        // 先减一次，被除数和除数可能相等,res初始化为-1
+        dividend -= divisor;
+
+        // 这里等于也可以的哦！！不带等号的话答案会少一个1或者-1
+        while (dividend <= div) {
+            divisor += divisor;
+            n += n;
+            if (dividend > divisor) {
+                divisor = div;
+                n = -1;
+            }
+            dividend -= divisor;
+
+            // 检查溢出边界，注意此时的res和n都是负数
+            if (sign < 0 && res < Integer.MIN_VALUE - n)
+                return Integer.MAX_VALUE;
+            if (sign > 0 && opposite(res) > Integer.MAX_VALUE - opposite(n))
+                return Integer.MAX_VALUE;
+            res += n;
+            // System.out.println("dividend=" + dividend);
+            // System.out.println("divisor=" + divisor);
+            // System.out.println("res=" + res);
+
+        }
+
+        return sign > 0 ? opposite(res) : res;
+    }
+
+    // 求相反数 按位取反+1
+    public int opposite(int n) {
+        return ~n + 1;
+    }
+
+    // leetcode 9 回文数
+//    public boolean isPalindrome(int x) {
+//        if (x < 0)
+//            return false;
+//        if (x >= 0 && x < 10)
+//            return true;
+//        if (x % 10 == 0)
+//            return false;
+//        int l, r;
+//        // 求x的位数，n+1位
+//        // java中Math.log求的是ln，以自然对数e为底,求其他底数的对数值，需除以Math.log(自己的底数)
+//        int n = (int)(Math.log(x) / Math.log(10));
+//        while(n>0){
+//            // System.out.println(n);
+//            l = x / (int)Math.pow(10, n) % 10;
+//            r = x % 10;
+//            // System.out.println("l=" + l + ",r=" + r);
+//            if (l != r)
+//                return false;
+//            // 去掉末位，首位不能去，因为可能是0
+//            x = x/10;
+//            // System.out.println(x);
+//            //求最高位，往低位走每次减一，然后x除了10，再减1
+//            n -= 2;
+//        }
+//        return true;
+//    }
+
+    // leetcode 9 回文数
+    // 翻转一半数字，当x小于reversenum时，翻转了一半的数字
+    public boolean isPalindrome(int x) {
+        if (x < 0 || (x % 10 == 0 && x != 0))
+            return false;
+        int reversenum = 0;
+        while (x > reversenum) {
+            int l = x % 10;
+            reversenum = reversenum * 10 + l;
+            x /= 10;
+        }
+        // 如果x位数为奇数，比如12321，最后x=12,reversenum=123
+        // 那么reversenum的末位数就是中间的数，不影响回文，直接舍掉
+        return x == reversenum || x == reversenum / 10;
+    }
+
+    // leetcode 27 移除元素
+    public int removeElement(int[] nums, int val) {
+        int n = nums.length, i = 0, k = nums.length - 1;
+        // 从头遍历元素，遇到val值，从后往前找非val替换，同时更新n值
+        while (i < n) {
+            if (nums[i] == val) {
+                n--;
+                while (nums[k] == val) {
+                    k--;
+                    n--;
+                }
+                nums[i] = nums[k--];
+            }
+            i++;
+        }
+        // for (int j = 0; j < nums.length; j++)
+        //     System.out.print(nums[j]+" ");
+        return n;
+    }
+
+    // leetcode 69 x的平方根，二分法求解
+    public int mySqrt(int x) {
+        if (x <= 1) return x;
+        // 端点都用long类型，中间计算mid用int会越界
+        long l = 1, r = x / 2;
+        while (l < r) {
+            // 注意这里取有中位数，否则可能陷入死循环
+            long mid = (l + r + 1) / 2;
+            // System.out.println("mid="+mid+",left="+l+",right="+r+"\nmid*mid="+mid*mid+"\n");
+            // 最后返回的是左端点，所以l = mid
+            if (x == mid * mid) return (int) mid;
+            if (x < mid * mid) r = mid - 1;
+            else l = mid;
+
+        }
+        return (int) l;
+    }
+
+    // leetcode 快乐数
+    public boolean isHappy(int n) {
+        // n是10的指数
+        if (n - Math.log(n) / Math.log(10) == 0)
+            return true;
+        HashSet<Integer> set = new HashSet();
+        while (true) {
+            int sum = 0;
+            int tmp = n;
+            while (tmp > 0) {
+                // 计算各位平方和
+                sum += (tmp % 10) * (tmp % 10);
+                tmp /= 10;
+            }
+            if (sum == 1) return true;
+            // 无限循环
+            if (set.contains(sum)) return false;
+            set.add(sum);
+            n = sum;
+        }
+    }
 
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
@@ -2007,8 +2185,11 @@ public class Main {
 //        int[] nums = {1, 1, 1, 1, 1};
 //        System.out.println(increasingTriplet(nums));
 
-        char[][] grid = {{'1', '1', '1', '1', '0'}, {'1', '1', '0', '1', '0'}, {'1', '1', '0', '0', '0'}, {'0', '0', '0', '0', '0'}};
-        System.out.println(numIslands(grid));
+//        char[][] grid = {{'1', '1', '1', '1', '0'}, {'1', '1', '0', '1', '0'}, {'1', '1', '0', '0', '0'}, {'0', '0', '0', '0', '0'}};
+////        System.out.println(numIslands(grid));
+
+        Main main = new Main();
+        System.out.println(main.divide(-2147483648, 2));
 
     }
 }
