@@ -2092,6 +2092,246 @@ public class Main {
         }
     }
 
+//    // n能被几个a整除
+//    public int logM(long n, int a){
+//        int k = 1;
+//        long s = a;  // s居然会越界，换成long
+//        int num = 0;
+//        while(n > 0 && n % a == 0){
+//            if (n % s > 0){
+//                k = 1;s = a;
+//            }
+//            num += k;
+//            n /= s;
+//            // 每次乘方，加快计算速度
+//            k += k; s *= s;
+//        }
+//        return num;
+//    }
+//
+//    // leetcode 阶乘后的0
+//    public int trailingZeroes(int n) {
+//        if (n < 5) return 0;
+//        int num = 0;
+//        long fact = 1;
+//        for (; n >= 2; n--){
+//
+//            if (n % 5 != 0 && n % 2 != 0) continue;
+//
+//            int tmp = n;
+//            int a = tmp;
+//
+//            // 对tmp取掉末尾的0
+//            a = logM(tmp, 10);
+//            num += a;
+//            tmp /= (int)Math.pow(10, a);
+//
+//            // 对tmp取2
+//            if (tmp % 2 == 0){
+//                a = logM(tmp, 2);
+//                tmp = (int)Math.pow(2, a);
+//                fact *= tmp;
+//            }
+//            // 对tmp取5
+//            if (tmp % 5 == 0){
+//                a = logM(tmp, 5);
+//                tmp = (int)Math.pow(5, a);
+//                fact *= tmp;
+//            }
+//
+//            if (n <= 21)System.out.println("tmp="+tmp+",fact="+fact+",num="+num);
+//
+//            // 每一步对fact取末尾的0，防止溢出
+//            a = logM(fact, 10);
+//            num += a;
+//            fact /= (int)Math.pow(10, a);
+//            if (n <= 21)System.out.println("fact="+fact);
+//            // 对fact取2
+//            if (fact % 2 == 0){
+//                a = logM(fact, 2);
+//                fact = (int)Math.pow(2, a);
+//            }
+//            // 对fact取5
+//            if (fact % 5 == 0){
+//                a = logM(fact, 5);
+//                fact = (int)Math.pow(5, a);
+//            }
+////            if (n <= 22)
+////                System.out.println("fact="+fact+",n="+n+",num="+num+"\n");
+//        }
+//        return num;
+//    }
+
+    // leetcode 阶乘后的零，统计n!的质因数5的个数
+    public int trailingZeroes(int n) {
+        long num = 0;
+        while (n > 0) {
+            num += (n / 5);
+            n /= 5;
+        }
+        return (int) num;
+    }
+
+
+    // leetcode 166.分数到小数
+    public String fractionToDecimal(int numerator, int denominator) {
+        if (numerator == 0) return "0";
+        long num = numerator;
+        long den = denominator;
+        String sign = "";
+        //确定符号
+        if (num > 0 && den < 0 || num < 0 && den > 0) {
+            sign = "-";
+        }
+        //转为正数
+        num = Math.abs(num);
+        den = Math.abs(den);
+        //记录整数部分
+        long integer = num / den;
+        //计算余数
+        num = num - integer * den;
+        HashMap<Long, Integer> map = new HashMap<>();
+        int index = 0;
+        String decimal = "";//记录小数部分
+        int repeatIndex = -1;//保存重复的位置
+        while (num != 0) {
+            num *= 10;//余数乘以 10 作为新的被除数
+            if (map.containsKey(num)) {
+                repeatIndex = map.get(num);
+                break;
+            }
+            //保存被除数
+            map.put(num, index);
+            //保存当前的商
+            long decimalPlace = num / den;
+            //加到所有的商中
+            decimal = decimal + decimalPlace;
+            //计算新的余数
+            num = num - decimalPlace * den;
+            index++;
+        }
+        //是否存在循环小数
+        if (repeatIndex != -1) {
+            String dec = decimal;
+            return sign + integer + "." + dec.substring(0, repeatIndex) + "(" + dec.substring(repeatIndex) + ")";
+        } else {
+            if (decimal == "") {
+                return sign + integer;
+            } else {
+                return sign + integer + "." + decimal;
+            }
+        }
+    }
+
+    // leetcode 两整数之和
+    // 三步循环：1.计算无进位加法，2.计算加法进位，3.将一二步结果相加，方法还是1.2.，也即对得到的结果重复一二步操作，直至进位为0。
+    // 用位运算实现，计算无进位加法，即两数异或；计算加法进位，即两数相与。
+    public int getSum(int a, int b) {
+        while (b != 0) {
+            int tmp = a & b;
+            a = a ^ b; // 计算无进位加法
+            b = tmp << 1;  // 计算加法进位
+        }
+        return a;
+    }
+
+    // 逆波兰表达式求值
+    public int evalRPN(String[] tokens) {
+        Stack<Integer> s = new Stack<>();
+        for (String token : tokens) {
+            // 判断字符串是否是整数，包括正负，？0或1个，+ 1或多个， * 0或多个
+            if (token.matches("-?[0-9]+")) {
+                s.push(Integer.parseInt(token));
+                continue;
+            }
+            int tmp1, tmp2;
+            if ("+".equals(token)) {
+                tmp1 = s.pop();
+                tmp2 = s.pop();
+                s.push(tmp1 + tmp2);
+            } else if ("-".equals(token)) {
+                tmp2 = s.pop();
+                tmp1 = s.pop();
+                s.push(tmp1 - tmp2);
+            } else if ("*".equals(token)) {
+                tmp1 = s.pop();
+                tmp2 = s.pop();
+                s.push(tmp1 * tmp2);
+            } else if ("/".equals(token)) {
+                tmp2 = s.pop();
+                tmp1 = s.pop();
+                s.push(tmp1 / tmp2);
+            }
+        }
+        return s.peek();
+    }
+
+//    // leetcode 逆波兰表达式求值，节约时间的版本，不用判断是否是整数
+//    public int evalRPN(String[] tokens) {
+//        Stack<Integer> s = new Stack<>();
+//        for (String token: tokens){
+//            int tmp1, tmp2;
+//            if ("+".equals(token)){
+//                tmp1 = s.pop();tmp2 = s.pop();
+//                s.push(tmp1+tmp2);
+//            }else if ("-".equals(token)){
+//                tmp2 = s.pop(); tmp1 = s.pop();
+//                s.push(tmp1-tmp2);
+//            }else if ("*".equals(token)){
+//                tmp1 = s.pop(); tmp2 = s.pop();
+//                s.push(tmp1*tmp2);
+//            }else if ("/".equals(token)){
+//                tmp2 = s.pop(); tmp1 = s.pop();
+//                s.push(tmp1/tmp2);
+//            }else{
+//                s.push(Integer.parseInt(token));
+//            }
+//        }
+//        return s.peek();
+//    }
+
+    // leetcode 多数元素
+    public int majorityElement(int[] nums) {
+        int len = nums.length;
+        int res = nums[0];
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (Integer num : nums) {
+            if (!map.containsKey(num)) {
+                map.put(num, 1);
+                continue;
+            }
+            map.replace(num, map.get(num) + 1);
+            if (map.get(num) > len / 2) {
+                res = num;
+                break;
+            }
+        }
+        return res;
+    }
+
+    // leetcode 621 任务调度器
+    // 首先统计每种任务的数量，然后统计最多任务的种类（同时有几个任务数量都是最多)
+    // 最后比较计算出来的最短执行时间和所有任务的总数量
+    public int leastInterval(char[] tasks, int n) {
+        //统计每种任务的数量
+        int[] cnt = new int[26];
+        // 统计任务数最多的任务的种类
+        int maxcount = 0;
+        // 任务最短执行时间
+        int res;
+        for (char task : tasks) {
+            cnt[task - 'A']++;
+        }
+        Arrays.sort(cnt);
+        for (int i = 25; i >= 0; i--) {
+            if (cnt[i] == cnt[25]) maxcount++;
+            else break;
+        }
+        res = Math.max((cnt[25] - 1) * (n + 1) + maxcount, tasks.length);
+        return res;
+
+    }
+
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
 //        int k = 3;
@@ -2189,7 +2429,11 @@ public class Main {
 ////        System.out.println(numIslands(grid));
 
         Main main = new Main();
-        System.out.println(main.divide(-2147483648, 2));
+//        System.out.println(main.divide(-2147483648, 2));
+//        System.out.println(main.trailingZeroes(200));
+//        System.out.println(main.fractionToDecimal(1, 33));
+//        System.out.println(main.evalRPN(new String[]{"10","6","9","3","+","-11","*","/","*","17","+","5","+"}));
+        System.out.println(main.majorityElement(new int[]{6, 5, 5}));
 
     }
 }
