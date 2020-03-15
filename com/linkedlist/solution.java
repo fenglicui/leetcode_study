@@ -69,6 +69,27 @@ public class solution {
         return prev;
     }
 
+    // 206. 反转链表 递归反转
+//    ListNode header = null;
+//    public ListNode reverseList(ListNode head, ListNode prev){
+//        // 到达链表尾部
+//        if (head == null && prev.next == null){
+//            ListNode node = new ListNode(prev.val);
+//            header = node;
+//            return node;
+//        }
+//        ListNode tmp = reverseList(head.next, head);
+//        tmp.next = new ListNode(prev.val);
+//        tmp = tmp.next;
+//        return tmp;
+//    }
+//
+//    public ListNode reverseList(ListNode head) {
+//        if (head == null || head.next == null) return head;
+//        reverseList(head.next, head);
+//        return header;
+//    }
+
     //LeetCodeCode 909 两数相加
     public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
         //添加头结点，head指向l 便于最后返回
@@ -276,6 +297,45 @@ public class solution {
             headB = headB.next;
         }
         return null;
+    }
+
+    // leetcode 删除排序链表中的重复元素
+    public ListNode deleteDuplicates(ListNode head) {
+        ListNode head0 = new ListNode(-1);
+        head0.next = head; // 添加头结点
+        while (head != null && head.next != null) { // 如果至少还有两个节点
+            int val = head.val;
+            if (head.next.val == val) { // 出现了重复节点
+                ListNode tmp = head.next;
+                // 从next出发，向后删除重复节点
+                while (tmp != null && tmp.val == val) {
+                    tmp = tmp.next; // 删除重复节点
+                }
+                head.next = tmp;
+            }
+            head = head.next;
+        }
+        return head0.next;
+    }
+
+
+    // leetcode 删除列表中的元素
+    public ListNode removeElements(ListNode head, int val) {
+        if (head == null) return null;
+        ListNode header = new ListNode(-1);
+        // 删除开头的相同val
+        while (head != null && head.val == val) {
+            head = head.next;
+        }
+        header.next = head;
+        // 最后一个为val的话前面一定有不为val的
+        while (head != null) {
+            // 一直往后删除等于val的node
+            while (head.next != null && head.next.val == val)
+                head.next = head.next.next;
+            head = head.next;
+        }
+        return header.next;
     }
 
     public static void main(String[] args) {

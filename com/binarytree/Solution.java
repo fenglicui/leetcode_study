@@ -315,6 +315,95 @@ public class Solution {
         return results;
     }
 
+    // LeetCode 二叉树的最近公共祖先
+    private TreeNode ans;
+
+    public Solution() {
+        this.ans = null;
+    }
+
+    public boolean rescurTree(TreeNode root, TreeNode p, TreeNode q) {
+        // 空节点返回false
+        if (root == null) return false;
+        // 递归左子树，返回是否存在p,q节点
+        int left = rescurTree(root.left, p, q) ? 1 : 0;
+        // 递归右子树，返回是否存在p,q节点
+        int right = rescurTree(root.right, p, q) ? 1 : 0;
+        // 当前节点是否为p q
+        int mid = (root.val == p.val || root.val == q.val) ? 1 : 0;
+        // System.out.println("left=" + left + ",right=" + right + ",mid=" + mid + ",root.val=" + root.val);
+        // 如果在当前节点存在p和q，设置ans
+        if (this.ans == null && left + mid + right >= 2)
+            this.ans = root;
+        // 返回是否存在p q节点
+        return left + mid + right > 0;
+    }
+
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        rescurTree(root, p, q);
+        return this.ans;
+    }
+
+    // LeetCode 543.二叉树的直径
+    int diameter = 0;
+
+    public int diameterOfBiTree(TreeNode root) {
+        if (root == null)
+            return -1;
+        // 计算左右子树到当前节点的路径
+        int d1 = diameterOfBiTree(root.left) + 1;
+        int d2 = diameterOfBiTree(root.right) + 1;
+        // 如果穿过当前节点路径更长，更新diameter
+        if (d1 + d2 > diameter) diameter = d1 + d2;
+        return Math.max(d1, d2);
+    }
+
+    public int diameterOfBinaryTree(TreeNode root) {
+        // 取最大值
+        return Math.max(diameterOfBiTree(root), diameter);
+    }
+
+    // 竞赛题：将二叉搜索树变平衡
+    boolean balance = true;
+
+    // 中序遍历的同时判断是否平衡
+    public int inOrder(List<Integer> vals, TreeNode root) {
+        if (root == null)
+            return -1;
+        int left = inOrder(vals, root.left) + 1;
+        vals.add(root.val);
+        int right = inOrder(vals, root.right) + 1;
+        if (left - right > 1 || right - left > 1)
+            balance = false;
+        return Math.max(left, right);
+
+    }
+
+    // 建立二叉搜索树
+    public TreeNode creatBST(List<Integer> vals, int left, int right) {
+        if (left > right)
+            return null;
+        // if (left == right)
+        //     return new TreeNode(root.val);
+        int mid = left + (right - left) / 2;
+        TreeNode node = new TreeNode(vals.get(mid));
+        node.left = creatBST(vals, left, mid - 1);
+        node.right = creatBST(vals, mid + 1, right);
+        return node;
+    }
+
+    public TreeNode balanceBST(TreeNode root) {
+        if (root == null || (root.left == null && root.right == null))
+            return root;
+        List<Integer> vals = new ArrayList<>();
+        inOrder(vals, root);
+        if (balance)
+            return root;
+        // 不平衡的话，中序遍历得到的是升序数组，直接在此基础上建立二叉搜索树
+        root = creatBST(vals, 0, vals.size() - 1);
+        return root;
+    }
+
     public static void main(String[] args) {
 //        TreeNode root = new TreeNode(1);
 //        TreeNode node1 = new TreeNode(2);
