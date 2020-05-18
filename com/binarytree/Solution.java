@@ -10,10 +10,7 @@
  */
 package com.binarytree;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -88,38 +85,6 @@ public class Solution {
         if (left == null || right == null) return false;
         if (left.val != right.val) return false;
         return isSymmetric(left.right, right.left) && isSymmetric(left.left, right.right);
-    }
-
-    // leetcode 二叉树的层次遍历
-    public List<List<Integer>> levelOrder(TreeNode root) {
-        List<List<Integer>> nodes = new ArrayList<>();
-        if (root == null) return nodes;
-        //创建第一层
-        List<TreeNode> layers = new ArrayList<>();
-        layers.add(root);
-        List<Integer> values = new ArrayList<>();
-        values.add(root.val);
-        //添加根节点
-        nodes.add(values);
-        while (layers.size() > 0) {
-            List<TreeNode> tmps = new ArrayList<>();
-            values = new ArrayList<>();
-            for (int i = 0; i < layers.size(); i++) {
-                TreeNode node = layers.get(i);
-                if (node.left != null) {
-                    tmps.add(node.left);
-                    values.add(node.left.val);
-                }
-                if (node.right != null) {
-                    tmps.add(node.right);
-                    values.add(node.right.val);
-                }
-            }
-            if (tmps.size() == 0) break;
-            nodes.add(values);
-            layers = tmps;
-        }
-        return nodes;
     }
 
     public TreeNode sortedArrayToBST(int[] nums, int left, int right) {
@@ -402,6 +367,68 @@ public class Solution {
         // 不平衡的话，中序遍历得到的是升序数组，直接在此基础上建立二叉搜索树
         root = creatBST(vals, 0, vals.size() - 1);
         return root;
+    }
+
+    List<Integer> rightSideViewRes = new ArrayList<>();
+
+    public void rightSideViewTrackBack(TreeNode root, int depth) {
+        if (root == null)
+            return;
+        if (rightSideViewRes.size() < depth)
+            rightSideViewRes.add(root.val);
+        rightSideViewTrackBack(root.right, depth + 1);
+        rightSideViewTrackBack(root.left, depth + 1);
+    }
+
+    public List<Integer> rightSideView(TreeNode root) {
+        if (root == null)
+            return new ArrayList<Integer>();
+        rightSideViewRes = new ArrayList<>();
+        rightSideViewTrackBack(root, 1);
+        return rightSideViewRes;
+    }
+
+    // 572. 另一个树的子树 判断t是否是s的子树：三种情况，s和t相等，t是s的左子树的子树，t是s的右子树的子树。
+    // 判断相等，当然是val相等，左子树相等，且右子树相等。
+    public boolean isSametree(TreeNode s, TreeNode t) {
+        if (s == null && t == null)
+            return true;
+        if (s == null || t == null)
+            return false;
+        if (s.val != t.val)
+            return false;
+        return isSametree(s.left, t.left) && isSametree(s.right, t.right);
+    }
+
+    public boolean isSubtree(TreeNode s, TreeNode t) {
+        if (s == null && t == null)
+            return true;
+        if (s == null && t != null)
+            return false;
+        return isSametree(s, t) || isSubtree(s.left, t) || isSubtree(s.right, t);
+    }
+
+    // 102. 二叉树的层序遍历 用队列实现
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        Queue<TreeNode> q = new LinkedList<>();
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        q.offer(root);
+        while (q.size() > 0) {
+            int n = q.size();
+            List<Integer> vals = new ArrayList<>();
+            while (n-- > 0) {
+                TreeNode node = q.poll();
+                vals.add(node.val);
+                if (node.left != null)
+                    q.offer(node.left);
+                if (node.right != null)
+                    q.offer(node.right);
+            }
+            res.add(vals);
+        }
+        return res;
     }
 
     public static void main(String[] args) {

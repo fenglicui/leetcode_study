@@ -1,6 +1,7 @@
 package com.NestedIterator;
 
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * // This is the interface that allows for creating nested lists.

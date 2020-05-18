@@ -91,41 +91,41 @@ public class solution {
 //    }
 
     //LeetCodeCode 909 两数相加
-    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
-        //添加头结点，head指向l 便于最后返回
-        ListNode l = new ListNode(-1);
-        ListNode head = l;
-        int c = 0;
-        // 首先计算两个链表相同长度的部分，注意进位
-        while (l1 != null && l2 != null) {
-            int n1 = l1.val, n2 = l2.val;
-            int sum = n1 + n2 + c;
-            ListNode tmp = new ListNode(sum % 10);
-            c = sum / 10;
-            l.next = tmp;
-            l1 = l1.next;
-            l2 = l2.next;
-            l = l.next;
-        }
-        // 然后对于l1或l2剩下的部分加到求和链表l上，注意产生进位
-        //把剩下的加上来
-        ListNode last = (l1 != null) ? l1 : l2;
-        while (last != null) {
-            int sum = last.val + c;
-            ListNode tmp = new ListNode(sum % 10);
-            c = sum / 10;
-            l.next = tmp;
-            last = last.next;
-            l = l.next;
-        }
-        // 最后如果首位有进位，添加一个节点
-        //如果最后c等于1 表示最高位进了1
-        if (c == 1) {
-            ListNode tmp = new ListNode(1);
-            l.next = tmp;
-        }
-        return head.next;
-    }
+//    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+//        //添加头结点，head指向l 便于最后返回
+//        ListNode l = new ListNode(-1);
+//        ListNode head = l;
+//        int c = 0;
+//        // 首先计算两个链表相同长度的部分，注意进位
+//        while (l1 != null && l2 != null) {
+//            int n1 = l1.val, n2 = l2.val;
+//            int sum = n1 + n2 + c;
+//            ListNode tmp = new ListNode(sum % 10);
+//            c = sum / 10;
+//            l.next = tmp;
+//            l1 = l1.next;
+//            l2 = l2.next;
+//            l = l.next;
+//        }
+//        // 然后对于l1或l2剩下的部分加到求和链表l上，注意产生进位
+//        //把剩下的加上来
+//        ListNode last = (l1 != null) ? l1 : l2;
+//        while (last != null) {
+//            int sum = last.val + c;
+//            ListNode tmp = new ListNode(sum % 10);
+//            c = sum / 10;
+//            l.next = tmp;
+//            last = last.next;
+//            l = l.next;
+//        }
+//        // 最后如果首位有进位，添加一个节点
+//        //如果最后c等于1 表示最高位进了1
+//        if (c == 1) {
+//            ListNode tmp = new ListNode(1);
+//            l.next = tmp;
+//        }
+//        return head.next;
+//    }
 
     public static ListNode removeZeroSumSublists(ListNode head) {
         List<Integer> values = new ArrayList<>();
@@ -336,6 +336,109 @@ public class solution {
             head = head.next;
         }
         return header.next;
+    }
+
+    // 876. 链表的中间结点
+//    数组法
+//    public ListNode middleNode(ListNode head) {
+//        List<ListNode> nodes = new ArrayList<>();
+//        // 遍历并保存节点，注意要创建一个临时节点，不然最后保留的都是同一个节点
+//        while (head != null){
+//            ListNode tmp = head;
+//            nodes.add(tmp);
+//            head = head.next;
+//        }
+//        // 链表长度为奇数 5/2, 链表长度为偶数 6/2，都是下标为3的node
+//        return nodes.get(nodes.size()/2);
+//    }
+
+    public ListNode middleNode(ListNode head) {
+        ListNode fast = head;
+        ListNode slow = head;
+        // 快慢指针
+        while (fast != null && fast.next != null) {
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        return slow;
+    }
+
+    //    445. 两数相加 II
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        if (l1 == null && l2 == null)
+            return null;
+        if (l1 == null || l2 == null)
+            return l1 == null ? l2 : l1;
+        List<Integer> v1s = new ArrayList<>(), v2s = new ArrayList<>();
+        while (l1 != null || l2 != null) {
+            if (l1 != null) {
+                v1s.add(0, l1.val);
+                l1 = l1.next;
+            }
+            if (l2 != null) {
+                v2s.add(0, l2.val);
+                l2 = l2.next;
+            }
+        }
+        ListNode node = null;
+        int i = 0, j = 0, c = 0;
+        while (i < v1s.size() || j < v2s.size() || c > 0) {
+            int sum = 0;
+            if (i < v1s.size()) {
+                sum += v1s.get(i);
+                i++;
+            }
+            if (j < v2s.size()) {
+                sum += v2s.get(j);
+                j++;
+            }
+            sum += c;
+            ListNode newNode = new ListNode(sum % 10);
+            c = sum / 10;
+            newNode.next = node;
+            node = newNode;
+        }
+        return node;
+    }
+
+    //    23. 合并K个排序链表 归并合并法
+    public ListNode merge2Lists(ListNode l1, ListNode l2) {
+        if (l1 == null || l2 == null)
+            return l1 == null ? l2 : l1;
+        ListNode header = new ListNode(-1);
+        ListNode node = header;
+        while (l1 != null && l2 != null) {
+            if (l1.val < l2.val) {
+                node.next = new ListNode(l1.val);
+                l1 = l1.next;
+            } else {
+                node.next = new ListNode(l2.val);
+                l2 = l2.next;
+            }
+            node = node.next;
+        }
+        if (l1 != null)
+            node.next = l1;
+        if (l2 != null)
+            node.next = l2;
+        return header.next;
+    }
+
+    public ListNode mergeKLists(ListNode[] lists, int left, int right) {
+        if (left == right)
+            return lists[left];
+        int mid = left + (right - left) / 2;
+        ListNode lNode = mergeKLists(lists, left, mid);
+        ListNode rNode = mergeKLists(lists, mid + 1, right);
+        return merge2Lists(lNode, rNode);
+    }
+
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists.length == 0)
+            return null;
+        if (lists.length == 1)
+            return lists[0];
+        return mergeKLists(lists, 0, lists.length - 1);
     }
 
     public static void main(String[] args) {
