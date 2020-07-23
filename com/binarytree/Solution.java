@@ -11,7 +11,6 @@
 package com.binarytree;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 〈一句话功能简述〉<br>
@@ -37,39 +36,38 @@ public class Solution {
     }
 
     //LeetCode 对称二叉树 迭代版本
-//    public static boolean isSymmetric(TreeNode root) {
-//        if (root == null) return false;
-//        List<TreeNode> nodes = new ArrayList<TreeNode>();
-//        nodes.add(root);
-//        while (nodes.size()>0) {
-//            List<TreeNode> tmps = new ArrayList<TreeNode>();
-//            int count = 0;  //用于记录下一层节点数量
-//            //扫描一遍当前节点集合，获取下一层节点集合
-//            for (int i = 0; i < nodes.size(); i++) {
-//                TreeNode tmp = nodes.get(i);
-//                TreeNode empty = new TreeNode(Integer.MAX_VALUE);
-//                if (tmp.left!=null){
-//                    tmps.add(tmp.left);count++;
-//                }
-//                else tmps.add(empty);
-//                if (tmp.right!=null){
-//                    tmps.add(tmp.right);count++;
-//                }
-//                else tmps.add(empty);
+    // 101. 对称二叉树 迭代
+//    public boolean isSymmetric(TreeNode root) {
+//        if (root == null)
+//            return true;
+//        List<Integer> layers = new ArrayList<>();
+//        Deque<TreeNode> stack = new ArrayDeque<>();
+//        stack.addLast(root);
+//        while(!stack.isEmpty()){
+//            int size = stack.size();
+//            while(size-->0){
+//                TreeNode node = stack.removeFirst();
+//                if (node.left!=null){
+//                    // System.out.println(node.left.val);
+//                    stack.addLast(node.left);
+//                    layers.add(node.left.val);
+//                }else layers.add(Integer.MAX_VALUE);
+//                if (node.right!=null){
+//                    // System.out.println(node.right.val);
+//                    stack.addLast(node.right);
+//                    layers.add(node.right.val);
+//                }else layers.add(Integer.MAX_VALUE);
 //            }
-//            //如果左右节点之和为奇数
-//            if (count % 2 > 0){
-//                return false;
-//            }
-//            //所有节点遍历结束
-//            if (count == 0)
-//                break;
-//            int tmps_size = tmps.size();
-//            for (int i = 0; i < tmps_size/2; i++){
-//                if (tmps.get(i).val != tmps.get(tmps_size-1-i).val)
+//            int i = 0, j = layers.size()-1;
+//            while(i<j){
+//                // System.out.println(layers.get(i) + "," + layers.get(j));
+//                if (!layers.get(i).equals(layers.get(j))){
 //                    return false;
+//                }
+//                i++;j--;
 //            }
-//            nodes = new ArrayList<TreeNode>(tmps);
+//            layers = new ArrayList<>();
+//
 //        }
 //        return true;
 //    }
@@ -178,33 +176,26 @@ public class Solution {
         return root;
     }
 
-    public TreeNode buildBinaryTree(List<Integer> preorder, List<Integer> inorder) {
-//        记录左子树节点个数
-//        不用ArrayList，直接用数组，标记起始位置会更快
-        if (preorder.size() == 0)
+    //    105. 从前序与中序遍历序列构造二叉树
+    HashMap<Integer, Integer> inorderMap;
+
+    public TreeNode helper(int[] preorder, int pre_left, int pre_right, int[] inorder, int in_left, int in_right) {
+        if (pre_left > pre_right)
             return null;
-        int v = preorder.get(0);
-        TreeNode root = new TreeNode(v);
-        if (preorder.size() == 1)
-            return root;
-        int idx = inorder.indexOf(v);
-        int left_num = 0;
-        if (idx > 0) {
-            left_num = idx;
-            root.left = buildBinaryTree(preorder.subList(1, left_num + 1), inorder.subList(0, idx));
-        }
-        if (idx < inorder.size() - 1) {
-            root.right = buildBinaryTree(preorder.subList(left_num + 1, preorder.size()), inorder.subList(idx + 1, inorder.size()));
-        }
+        TreeNode root = new TreeNode(preorder[pre_left]);
+        int index = inorderMap.get(root.val);
+        int left_num = index - in_left;
+        root.left = helper(preorder, pre_left + 1, left_num + pre_left, inorder, in_left, index - 1);
+        root.right = helper(preorder, left_num + pre_left + 1, pre_right, inorder, index + 1, in_right);
         return root;
     }
-
-    // leetcode 从前序与中序遍历序列构造二叉树
     public TreeNode buildTree(int[] preorder, int[] inorder) {
-        // int[] to List<Integer>
-        List<Integer> pre = Arrays.stream(preorder).boxed().collect(Collectors.toList());
-        List<Integer> in = Arrays.stream(inorder).boxed().collect(Collectors.toList());
-        return buildBinaryTree(pre, in);
+        if (preorder.length == 0 || inorder.length == 0)
+            return null;
+        inorderMap = new HashMap<>();
+        for (int i = 0; i < inorder.length; i++)
+            inorderMap.put(inorder[i], i);
+        return helper(preorder, 0, preorder.length - 1, inorder, 0, inorder.length - 1);
     }
 
     // leetcode 二叉搜索树中第k小的元素
@@ -427,6 +418,36 @@ public class Solution {
                     q.offer(node.right);
             }
             res.add(vals);
+        }
+        return res;
+    }
+
+    // 95. 不同的二叉搜索树 II 递归搜索所有可能的左子树 和 右子树
+    // 保证二叉搜索树的关键是左子树的值都小于当前节点，右子树的值大于当前节点
+    // 以i为根节点，只需要1-i-1创建左子树，i+1-n创建右子树，这样便形成了递归
+    public List<TreeNode> generateTrees(int n) {
+        if (n <= 0)
+            return new ArrayList<TreeNode>();
+        return generateTrees(1, n);
+    }
+
+    public List<TreeNode> generateTrees(int start, int end) {
+        List<TreeNode> res = new ArrayList<>();
+        if (start > end) {
+            res.add(null);
+            return res;
+        }
+        for (int i = start; i <= end; i++) {
+            List<TreeNode> subLefts = generateTrees(start, i - 1);
+            List<TreeNode> subRights = generateTrees(i + 1, end);
+            for (TreeNode left : subLefts) {
+                for (TreeNode right : subRights) {
+                    TreeNode root = new TreeNode(i);
+                    root.left = left;
+                    root.right = right;
+                    res.add(root);
+                }
+            }
         }
         return res;
     }

@@ -1,111 +1,93 @@
 package com.LRU;
 
 import java.util.HashMap;
-import java.util.Map;
 
 
 // leetcode 哈希表+双向链表 哈希链表 实现LRU缓存机制
-// 自定义node，包含key，val，前驱和后继
 class Node {
-    int key, val;
-    Node prev, next;
+    int key;
+    int val;
+    Node prev;
+    Node next;
 
-    public Node(int key, int val) {
-        this.key = key;
-        this.val = val;
-        prev = null;
-        next = null;
+    public Node(int k, int v) {
+        key = k;
+        val = v;
     }
 }
 
-// 双向链表结构，包括头尾指针和size
-class DoubleList {
-    Node head, tail;
-    int size;
+class DoubleLinkedList {
+    Node head;
+    Node tail;
+    int capacity;
 
-    public DoubleList() {
+    public DoubleLinkedList() {
+        this.capacity = 0;
         head = new Node(-1, -1);
         tail = new Node(-1, -1);
         head.next = tail;
         tail.prev = head;
-        size = 0;
     }
 
-    // 首端添加节点
-    public void addFirst(Node node) {
-        // node的prev和next
-        node.next = head.next;
-        node.prev = head;
-        // 原来next和head
-        head.next.prev = node;
-        head.next = node;
-        size++;
+    public void insertToTail(Node node) {
+        node.prev = tail.prev;
+        node.next = tail;
+        tail.prev.next = node;
+        tail.prev = node;
+        capacity++;
     }
 
-    // 删除指定节点(一定存在)
-    public void remove(Node node) {
-        // 原next和prev
-        node.next.prev = node.prev;
+    public void deleteNode(Node node) {
         node.prev.next = node.next;
-        size--;
+        node.next.prev = node.prev;
+        capacity--;
     }
 
-    // 删除并返回末端节点
-    public Node removeLast() {
-        if (tail.prev == head)
-            return null;
-        Node node = tail.prev;
-        remove(node);
-        return node;
-    }
-
-    public int getSize() {
-        return size;
+    public Node deleteFirst() {
+        Node res = head.next;
+        deleteNode(head.next);
+        return res;
     }
 }
-
 class LRUCache {
-    // node <k,v>
-    Map<Integer, Node> map;
-    // <k, v> -> <k, v, prev, next>
-    DoubleList doubleList;
     int capacity;
-
+    DoubleLinkedList doubleLinkedList;
+    HashMap<Integer, Node> map;
     public LRUCache(int capacity) {
-        map = new HashMap<>();
-        doubleList = new DoubleList();
         this.capacity = capacity;
+        doubleLinkedList = new DoubleLinkedList();
+        map = new HashMap<>();
     }
 
+    // 如果key存在，则更新链表，返回值，否则返回-1
     public int get(int key) {
         if (!map.containsKey(key))
             return -1;
         Node node = map.get(key);
-        // 用put将node提到前头
-        put(node.key, node.val);
+        doubleLinkedList.deleteNode(node);
+        doubleLinkedList.insertToTail(node);
         return node.val;
     }
 
+    // 如果key存在，则更新node的value，删除原来的node，插入到链表尾部
+    // 否则插入新建的node到链表尾部，然后判断容量，如果大于上限则删除链表头部第一个node
     public void put(int key, int value) {
-        // 创建新节点
-        Node node = new Node(key, value);
-        // 如果包含key
         if (map.containsKey(key)) {
-            // 删除原有节点
-            doubleList.remove(map.get(key));
-            // 在首端添加新节点
-            doubleList.addFirst(node);
-            // 更新map
-            map.put(key, node);
+            Node node = map.get(key);
+            doubleLinkedList.deleteNode(node);
+            node.val = value;
+            doubleLinkedList.insertToTail(node);// 这里要用原来的node，因为map存储的是node的地址
+
         } else {
-            // 缓存容量达到上限，删除末尾节点，修正map
-            if (doubleList.getSize() == capacity) {
-                Node last = doubleList.removeLast();
-                map.remove(last.key);
+            Node node = new Node(key, value);
+            doubleLinkedList.insertToTail(node);
+            map.put(key, node);  // 这里要插入之后再put，这样node的prev和next都有效
+            int size = doubleLinkedList.capacity;
+            if (size > capacity) {
+                node = doubleLinkedList.deleteFirst();
+                // node设计包含key，作用就在这 保证删除第一个node能O(1)时间内更新map
+                map.remove(node.key);
             }
-            // 直接添加到首端，更新map
-            doubleList.addFirst(node);
-            map.put(key, node);
         }
     }
 

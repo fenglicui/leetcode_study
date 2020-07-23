@@ -864,49 +864,6 @@ public class Main {
         return s.substring(start, end);
     }
 
-    // leetcode 打家劫舍
-    public int rob(int[] nums) {
-        if (nums == null || nums.length == 0) return 0;
-        if (nums.length == 1) return nums[0];
-        int[] robs = new int[nums.length];
-        robs[0] = nums[0];
-        robs[1] = nums[0] > nums[1] ? nums[0] : nums[1];
-        for (int i = 2; i < nums.length; i++) {
-            robs[i] = robs[i - 2] + nums[i] > robs[i - 1] ? robs[i - 2] + nums[i] : robs[i - 1];
-        }
-        return robs[nums.length - 1];
-    }
-
-    // leetcode 三数之和
-    public static List<List<Integer>> threeSum(int[] nums) {
-        List<List<Integer>> res = new ArrayList<>();
-        if (nums.length < 3) return res;
-        sort(nums);
-        for (int i = 0; i < nums.length - 2 && nums[i] <= 0; i++) {
-            // 过滤连续重复的值  !!!重要！！！
-            if (i > 0 && nums[i] == nums[i - 1]) continue;
-            int l = i + 1, r = nums.length - 1;
-            int sum = -nums[i];
-            while (l < r) {
-                // if (nums[r] + nums[r-1] < sum) break;
-                if (nums[l] + nums[r] == sum) {
-                    int[] a = {nums[i], nums[l], nums[r]};
-                    List<Integer> tripe = stream(a).boxed().collect(Collectors.toList());
-                    // if (!res.contains(tripe))
-                    res.add(tripe);
-                    // 去重
-                    while (l < r && nums[l] == nums[l + 1]) l++;
-                    while (l < r && nums[r] == nums[r - 1]) r--;
-                    l++;
-                    r--;
-                } else if (nums[l] + nums[r] > sum)
-                    r--;
-                else l++;
-            }
-        }
-        return res;
-    }
-
     public static int countPrimes(int n) {
         if (n < 3) return 0;
         int count = 0;
@@ -2996,46 +2953,6 @@ public class Main {
         }
     }
 
-    // leetcode 54 螺旋矩阵
-    // 每一圈都是顺时针遍历，注意边界条件！
-    // 上边界走完，走右边界时候，起始行索引是up+1，同样走下边界时候，起始列索引是right-1
-    // 最后左边界，是down-1！！！你个大傻子！！！
-    public List<Integer> spiralOrder(int[][] matrix) {
-        if (matrix.length == 0) return new ArrayList<Integer>();
-        // 记录四个边界
-        int left = 0, right = matrix[0].length - 1, up = 0, down = matrix.length - 1;
-        // 下标索引
-        int i = 0, j = 0;
-        List<Integer> list = new ArrayList<>();
-        while (left <= right && up <= down) {
-            // 在上边界上，往右走
-            for (j = left; j <= right; j++) {
-                list.add(matrix[up][j]);
-            }
-            // 在右边界上，往下走
-            for (i = up + 1; i <= down; i++) {
-                list.add(matrix[i][right]);
-            }
-            // 防止只有一行或一列的情况
-            if (left < right && up < down) {
-                // 在下边界上，往左走
-                for (j = right - 1; j >= left; j--) {
-                    list.add(matrix[down][j]);
-                }
-                // 在左边界上，往上走
-                for (i = down - 1; i > up; i--) {
-                    list.add(matrix[i][left]);
-                }
-                // System.out.println("i="+i+",j="+j);
-            }
-            left++;
-            right--;
-            up++;
-            down--;
-        }
-        return list;
-    }
-
     // leetcode 91 解码方法，动态规划
     public int numDecodings(String s) {
         // 长度为0或起始字符为0，直接返回0
@@ -4839,6 +4756,573 @@ public class Main {
             return new int[0];
     }
 
+    // 680. 验证回文字符串 Ⅱ 双指针+子问题
+    // 关键在于，(i+1, j)和(i, j-1)都可能首尾字母相同，所以必须判断两个子串是否回文
+    public boolean validPalindrome(String s) {
+        char[] str = s.toCharArray();
+        int i = 0, j = str.length - 1;
+        while (i < j) {
+            if (str[i] == str[j]) {
+                i++;
+                j--;
+            } else {
+                boolean flag1 = true, flag2 = true;
+                int low = i + 1, high = j;
+                while (low < high) {
+                    if (str[low] == str[high]) {
+                        low++;
+                        high--;
+                    } else {
+                        flag1 = false;
+                        break;
+                    }
+                }
+                low = i;
+                high = j - 1;
+                while (low < high) {
+                    if (str[low] == str[high]) {
+                        low++;
+                        high--;
+                    } else {
+                        flag2 = false;
+                        break;
+                    }
+                }
+                return flag1 || flag2;
+            }
+        }
+        return true;
+    }
+
+    // 1371. 每个元音包含偶数次的最长子字符串
+    // 前缀和 + 哈希表 + 状态压缩 + 位运算 非常妙的一道题！
+    public int findTheLongestSubstring(String s) {
+        int len = s.length();
+        int[] pos = new int[1 << 5];
+        Arrays.fill(pos, -1);
+        pos[0] = 0;
+        int ans = 0;
+        int status = 0;
+        for (int i = 0; i < len; i++) {
+            char c = s.charAt(i);
+            if (c == 'a')
+                status ^= (1 << 0);
+            else if (c == 'e')
+                status ^= (1 << 1);
+            else if (c == 'i')
+                status ^= (1 << 2);
+            else if (c == 'o')
+                status ^= (1 << 3);
+            else if (c == 'u')
+                status ^= (1 << 4);
+            if (pos[status] >= 0)
+                ans = Math.max(ans, i + 1 - pos[status]);
+            else pos[status] = i + 1;
+        }
+        return ans;
+    }
+
+    // 76. 最小覆盖子串 滑动窗口
+    // 先不断右指针往右走，直到各字符频率满足条件
+    // 然后开始移动左指针，判断是否能够满足字符频率条件，满足，则更新最小子串长度
+    // 移动到不满足条件，再移动右指针，如此反复判断，直到末尾
+    public String minWindow(String s, String t) {
+        if (s.length() == 0 || t.length() == 0)
+            return "";
+        int[] tFreq = new int[256];
+        int[] winFreq = new int[256];
+        int start = 0, end = s.length();
+        int size = 0;
+        for (int i = 0; i < t.length(); i++) {
+            if (tFreq[t.charAt(i)] == 0)
+                size++;
+            tFreq[t.charAt(i)]++;
+        }
+        int left = 0, right = 0;
+        winFreq[s.charAt(0)]++;
+        int dist = tFreq[s.charAt(0)] == 1 ? 1 : 0;
+        while (left + t.length() - 1 < s.length()) {
+            if (dist < size) {
+                right++;
+                if (right == s.length())
+                    break;
+                winFreq[s.charAt(right)]++;
+                if (tFreq[s.charAt(right)] > 0 &&
+                        winFreq[s.charAt(right)] == tFreq[s.charAt(right)])
+                    dist++;
+
+            } else {
+                if (dist == size && right - left < end - start) {
+                    start = left;
+                    end = right;
+                }
+                if (tFreq[s.charAt(left)] > 0 &&
+                        winFreq[s.charAt(left)] == tFreq[s.charAt(left)]) {
+                    dist--;
+                }
+                winFreq[s.charAt(left)]--;
+                left++;
+            }
+        }
+        return end == s.length() ? "" : s.substring(start, end + 1);
+    }
+
+    // 287. 寻找重复数 从数组抽象出链表，查找环是否存在，以及确定环的入口
+    public int findDuplicate(int[] nums) {
+        int slow = 0, fast = 0;
+        while (true) {
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+            if (slow == fast)
+                break;
+        }
+        slow = 0;
+        while (slow != fast) {
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+        return slow;
+    }
+
+    // 974. 和可被 K 整除的子数组
+    // 前缀和，和可被k整除，也即两个前缀和的差能被K整除 pre[j] - pre[i] = n*K
+    // 换言之，pre[j] = pre[i] (mod K) 也即两个前缀和模K相等
+    // 也即****两个前缀和对K取余相等****
+    // 那么统计所有前缀和对K取余，每个余数出现的次数，例如余数a出现次数为n，那么C_n^2表示从n个余数为a的前缀和中取出两个，其差组成和可被K整除的子数组
+    public int subarraysDivByK(int[] A, int K) {
+        int len = A.length;
+        int[] prefix = new int[len + 1];
+        int[] modCnt = new int[K];
+        modCnt[0] = 1;
+        for (int i = 0; i < len; i++) {
+            prefix[i + 1] = prefix[i] + A[i];
+            // 注意Java 取模的特殊性，当被除数为负数时取模结果为负数，需纠正,保证余为正
+            int idx = (prefix[i + 1] % K + K) % K;
+            modCnt[idx]++;
+        }
+        int res = 0;
+        for (int cnt : modCnt) {
+            if (cnt >= 2) {
+                res += cnt * (cnt - 1) / 2;
+            }
+        }
+        return res;
+    }
+
+    // 394. 字符串解码 类似于括号栈，关键是分清楚什么时候入栈，出栈有哪些操作
+    public String decodeString(String s) {
+        Stack<String> strStack = new Stack<>();
+        Stack<Integer> numStack = new Stack<>();
+        StringBuffer cur = new StringBuffer();
+        int num = 0;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) {  // 如果是数字,更新数字
+                num = 10 * num + (c - '0');
+            } else if (c == '[') {  // 遇见左括号，push当前num和str
+                strStack.push(cur.toString());
+                numStack.push(num);
+                // System.out.println(res.toString() + "," + num);
+                cur = new StringBuffer();
+                num = 0;
+            } else if (c == ']') { // 遇见右括号，pop数字，更新字符串
+                int tnum = numStack.pop();
+                String str = cur.toString();
+                // 重复str tnum次 连到str栈顶后面
+                String ks = String.join("", Collections.nCopies(tnum, str));
+                cur = new StringBuffer(strStack.pop() + ks);
+            } else { //其它字符
+                cur.append(c);
+            }
+        }
+        return cur.toString();
+    }
+
+    // 198. 打家劫舍 动态规划问题
+    public int rob(int[] nums) {
+        if (nums.length == 0)
+            return 0;
+        int[] dp = new int[nums.length + 1];
+        dp[0] = 0;
+        dp[1] = nums[0];
+        for (int i = 2; i <= nums.length; i++) {
+            dp[i] = Math.max(dp[i - 2] + nums[i - 1], dp[i - 1]);
+        }
+        return dp[nums.length];
+    }
+
+    // 84. 柱状图中最大的矩形 暴力解法
+    public int largestRectangleArea1(int[] heights) {
+        if (heights.length == 0)
+            return 0;
+        if (heights.length == 1)
+            return heights[0];
+        int res = 0;
+        for (int i = 0; i < heights.length; i++) {
+            int height = heights[i];
+            int p = i, q = i;
+            while (p >= 0 && heights[p] >= height) p--;
+            while (q < heights.length && heights[q] >= height) q++;
+            // System.out.println(height*(q-p-1));
+            res = Math.max(res, height * (q - p - 1));
+        }
+        return res;
+    }
+
+    // 84. 柱状图中最大的矩形 单调栈
+    // 如果新元素大于栈顶，直接入栈，如果小于，那么栈顶元素可以计算矩形面积，出栈，并根据当前栈顶元素下标计算宽度
+    public int largestRectangleArea(int[] heights) {
+        if (heights.length == 0)
+            return 0;
+        if (heights.length == 1)
+            return heights[0];
+        int area = 0;
+        Deque<Integer> stack = new ArrayDeque<>();
+        int len = heights.length;
+        int[] newHeights = new int[len + 2];
+        for (int i = 0; i < len; i++) {
+            newHeights[i + 1] = heights[i];
+        }
+        heights = newHeights;
+        len += 2;
+        stack.addLast(0);
+        for (int i = 1; i < len; i++) {
+            while (heights[stack.peekLast()] > heights[i]) {
+                int height = heights[stack.removeLast()];
+                int width = i - stack.peekLast() - 1;
+                area = Math.max(area, width * height);
+            }
+            stack.addLast(i);
+        }
+        return area;
+    }
+
+    //    1431. 拥有最多糖果的孩子
+    public List<Boolean> kidsWithCandies(int[] candies, int extraCandies) {
+        int most = 0;
+        for (int candy : candies) {
+            most = Math.max(most, candy);
+        }
+        List<Boolean> res = new ArrayList<>();
+        for (int candy : candies) {
+            res.add(candy + extraCandies >= most);
+        }
+        return res;
+    }
+
+    // 面试题29. 顺时针打印矩阵
+    // leetcode 54 螺旋矩阵
+    // 每一圈都是顺时针遍历，注意边界条件！
+    public int[] spiralOrder(int[][] matrix) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+            return new int[0];
+        int rows = matrix.length, cols = matrix[0].length;
+        int top = 0, down = rows - 1, left = 0, right = cols - 1;
+        int[] res = new int[matrix.length * matrix[0].length];
+        int i = 0, j = 0, k = 0;
+        // 控制好边界
+        while (left <= right && top <= down) {
+            j = left;
+            // (top, left) -> (top, right)
+            while (j <= right) {
+                res[k++] = matrix[top][j++];
+            }
+            i = top + 1;
+            // (top+1, right) -> (down, right)
+            while (i <= down) {
+                res[k++] = matrix[i++][right];
+            }
+            // 这里要判断一下能不能走
+            // 防止只有一行或一列的情况
+            if (top < down && left < right) {
+                j = right - 1;
+                // (down, right-1) -> (down, left)
+                while (j >= left) {
+                    res[k++] = matrix[down][j--];
+                }
+                i = down - 1;
+                // (down-1, left) -> (top+1, left)
+                while (i > top) {
+                    res[k++] = matrix[i--][left];
+                }
+            }
+            left++;
+            right--;
+            top++;
+            down--;
+        }
+        return res;
+    }
+
+    // 128. 最长连续序列
+    public int longestConsecutive(int[] nums) {
+        // 题目要求 O(n) 复杂度。
+        //     用哈希表存储每个端点值对应连续区间的长度
+        //     若数已在哈希表中：跳过不做处理
+        //     若是新数加入：
+        //     取出其左右相邻数已有的连续区间长度 left 和 right
+        //     计算当前数的区间长度为：cur_length = left + right + 1
+        //     根据 cur_length 更新最大长度 max_length 的值
+        //     !!! 更新区间两端点的长度值 !!!
+        if (nums == null || nums.length == 0)
+            return 0;
+        Map<Integer, Integer> map = new HashMap<>();
+        int res = 0;
+        for (int num : nums) {
+            if (!map.containsKey(num)) {
+                int left = map.getOrDefault(num - 1, 0);
+                int right = map.getOrDefault(num + 1, 0);
+                int curLength = left + right + 1;
+                // System.out.println(curLength);
+                map.put(num, curLength);
+                map.put(num - left, curLength);
+                map.put(num + right, curLength);
+                res = Math.max(res, curLength);
+            }
+        }
+        return res;
+    }
+
+    // 并查集查找根节点
+    public int find(int[] DS, int s) {
+        while (DS[s] != s) {
+            DS[s] = DS[DS[s]];  // 根节点更新成上一代root，不用再遍历一遍
+            s = DS[s];
+        }
+        return s;
+    }
+
+    //990. 等式方程的可满足性
+    //    首先遍历所有的等式，构造并查集。同一个等式中的两个变量属于同一个连通分量，因此将两个变量进行合并。
+    //    然后遍历所有的不等式。同一个不等式中的两个变量不能属于同一个连通分量，因此对两个变量分别查找其所在的连通分量
+    //    如果两个变量在同一个连通分量中，则产生矛盾，返回 false。
+    public boolean equationsPossible(String[] equations) {
+        int[] DS = new int[26];
+        for (int i = 0; i < 26; i++) DS[i] = i;
+        boolean[] existed = new boolean[26];
+        List<String> notEquals = new ArrayList<>();
+        for (String equation : equations) {
+            int c1 = equation.charAt(0) - 'a', c2 = equation.charAt(3) - 'a';
+            int root1 = find(DS, c1), root2 = find(DS, c2);
+            if (equation.charAt(1) == '=') {
+                DS[root2] = root1;
+                find(DS, c2);
+            } else {
+                notEquals.add(equation);
+            }
+        }
+        for (String equation : notEquals) {
+            int c1 = equation.charAt(0) - 'a', c2 = equation.charAt(3) - 'a';
+            int root1 = find(DS, c1), root2 = find(DS, c2);
+            if (root1 == root2)
+                return false;
+        }
+        return true;
+    }
+
+    //    面试题46. 把数字翻译成字符串 递归
+    public int translateNum(char[] nums, int k) {
+        if (k == nums.length - 1 || k == nums.length) return 1;
+        int n1 = nums[k] - '0', n2 = nums[k + 1] - '0';
+        int t1 = translateNum(nums, k + 1);
+        int t2 = 0;
+        if (n1 != 0 && n1 * 10 + n2 < 26)
+            t2 = translateNum(nums, k + 2);
+        return t1 + t2;
+    }
+
+    public int translateNum(int num) {
+        if (num == 0)
+            return 0;
+        char[] nums = String.valueOf(num).toCharArray();
+        return translateNum(nums, 0);
+    }
+
+    // 739. 每日温度 单调栈
+    public int[] dailyTemperatures(int[] T) {
+        int len = T.length;
+        int[] ans = new int[len];
+        Deque<Integer> stack = new LinkedList<Integer>();
+        for (int i = 0; i < len; i++) {
+            while (!stack.isEmpty() && T[stack.peek()] < T[i]) {
+                int j = stack.pop();
+                ans[j] = i - j;
+            }
+            stack.push(i);
+        }
+        return ans;
+    }
+
+    // 15. 三数之和 双指针
+    public List<List<Integer>> threeSum(int[] nums) {
+        int len = nums.length;
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        for (int first = 0; first < len - 2 && nums[first] <= 0; first++) {
+            if (first > 0 && nums[first] == nums[first - 1])
+                continue;
+            int sum = -nums[first];
+            int lastSecond = first;
+            int second = first + 1, third = len - 1;
+            while (second < third) {
+                if (second > first + 1 && nums[second] == nums[lastSecond]) {
+                    lastSecond = second;
+                    second++;
+                    continue;
+                }
+                if (nums[second] + nums[third] == sum) {
+                    List<Integer> triple = new ArrayList<>();
+                    triple.add(nums[first]);
+                    triple.add(nums[second]);
+                    triple.add(nums[third]);
+                    res.add(triple);
+                    lastSecond = second;
+                    second++;
+                    third--;
+                } else if (nums[second] + nums[third] < sum) {
+                    lastSecond = second;
+                    second++;
+                } else {
+                    third--;
+                }
+            }
+        }
+        return res;
+    }
+
+    //    378. 有序矩阵中第K小的元素 二分查找相当妙！
+    public int kthSmallest(int[][] matrix, int k) {
+        int n = matrix.length;
+        if (k == 1)
+            return matrix[0][0];
+        if (k == n * n)
+            return matrix[n - 1][n - 1];
+
+        int left = matrix[0][0], right = matrix[n - 1][n - 1];
+        while (left < right) {
+            int mid = left + (right - left) / 2;
+            int i = n - 1, j = 0;
+            int count = 0;
+            while (i >= 0 && j < n) {
+                if (matrix[i][j] <= mid) {
+                    count += i + 1;
+                    j++;
+                } else {
+                    i--;
+                }
+            }
+            if (count < k)
+                left = mid + 1;
+            else
+                right = mid;
+        }
+        return left;
+    }
+
+    public int respace(String[] dictionary, String sentence) {
+        if (sentence == null || sentence.length() == 0)
+            return 0;
+        char[] chars = sentence.toCharArray();
+        Triee trie = new Triee();
+        for (String dict : dictionary) {
+            trie.insert(dict);
+        }
+        int len = chars.length;
+        int[] dp = new int[len + 1];
+        Arrays.fill(dp, Integer.MAX_VALUE);
+        dp[0] = 0;
+        for (int i = 1; i <= len; i++) {
+            dp[i] = dp[i - 1] + 1;
+            Triee curPos = trie;
+            for (int j = i; j >= 1; j--) {
+                int idx = chars[j - 1] - 'a';
+                if (curPos.next[idx] == null)
+                    break;
+                if (curPos.next[idx].isEnd) {
+                    dp[i] = Math.min(dp[i], dp[j - 1]);
+                }
+                if (dp[i] == 0)
+                    break;
+                curPos = curPos.next[idx];
+            }
+        }
+        return dp[len];
+    }
+
+    // 309. 最佳买卖股票时机含冷冻期 动态规划
+    // 第i天有三种状态：买入，卖出，冷冻期什么都没做
+    // -> 进一步压缩，根据是否持有股票可分为持有和不持有
+    // 持有股票：今天买入了 或者 之前买入 今天什么都没做
+    // 不持有股票：今天卖出了 或者 之前卖出 今天是冷冻期
+    // 1) 持有股票的状态转移方程：hold[i] = max(hold[i-1], nothold[i-2]-prices[i])
+    //   a)今天买入,至少昨天是冷冻期：hold[i] = nothold[i-2]-prices[i]
+    //   b) 今天什么都没做：hold[i] = hold[i-1]
+    // 2) 不持有股票的状态转移方程：nothold[i] = max(nothold[i-1], hold[i-1]+prices[i])
+    //   a)今天卖出，那么昨天一定是持有股票状态 nothold[i] = hold[i-1]+prices[i]
+    //   b)今天是冷冻期，那么昨天就是不持有股票状态 nothold[i] = nothold[i-1]
+    public int maxProfit1(int[] prices) {
+        if (prices.length < 2)
+            return 0;
+        int len = prices.length;
+        int[] hold = new int[len], nothold = new int[len];
+        hold[0] -= prices[0];
+        for (int i = 1; i < len; i++) {
+            if (i >= 2) hold[i] = Math.max(hold[i - 1], nothold[i - 2] - prices[i]);
+            else hold[i] = Math.max(hold[i - 1], -prices[i]);
+            nothold[i] = Math.max(nothold[i - 1], hold[i - 1] + prices[i]);
+        }
+        return nothold[len - 1];
+    }
+
+    //785. 判断二分图 dfs
+    boolean valid = true;
+
+    public void dfsBipartite(int[][] graph, int[] colors, int k, int color) {
+        colors[k] = color;
+        int ccolor = color == 1 ? 0 : 1;
+        for (int j = 0; j < graph[k].length; j++) {
+            int p = graph[k][j];
+            if (colors[p] == color) {
+                valid = false;
+                return;
+            }
+            if (colors[p] == -1) {
+                dfsBipartite(graph, colors, p, ccolor);
+                if (!valid)
+                    return;
+            }
+        }
+    }
+
+    public boolean isBipartite(int[][] graph) {
+        valid = true;
+        int[] colors = new int[graph.length];
+        Arrays.fill(colors, -1);
+        int len = 0;
+        int firstP = 0;
+        int count = 0;
+        for (int i = 0; i < graph.length; i++) {
+            if (colors[i] == -1)
+                dfsBipartite(graph, colors, i, 0);
+        }
+        return valid;
+    }
+
+    // 剑指 Offer 11. 旋转数组的最小数字
+    // 二分查找
+    public int minArray(int[] numbers) {
+        int left = 0, right = numbers.length - 1, mid = 0;
+        while (left < right) {
+            mid = left + (right - left) / 2;
+            // 只要右边比中间大，那右边一定是有序数组
+            if (numbers[mid] < numbers[right])
+                right = mid;
+            else if (numbers[mid] > numbers[right])  // 折点在右边
+                left = mid + 1;
+            else right--;  // 去重
+        }
+        return numbers[left];
+    }
 
     public static void main(String[] args) {
 //        int[] a = {1, 2, 3, 4, 5, 6, 7};
@@ -4997,7 +5481,18 @@ public class Main {
 //        System.out.println(main.reversePairs(new int[]{7, 6, 5, 4}));
 //        System.out.println(main.singleNum(new int[]{4,1,4,6}));
 //        System.out.println(main.lengthOfLongestSubstring("pwwkew"));
-        System.out.print(main.findOrder(2, new int[0][0]));
+//        System.out.print(main.findOrder(2, new int[0][0]));
+//        System.out.println(main.validPalindrome("aguokepatgbnvfqmgmlcupuufxoohdfpgjdmysgvhmvffcnqxjjxqncffvmhvgsymdjgpfdhooxfuupuculmgmqfvnbgtapekouga"));
+//        System.out.print(main.minWindow("ADOBECODEBANC", "ABC"));
+//        System.out.println(main.largestRectangleArea(new int[]{2,1,5,6,2,3}));
+//        int[] a = new int[]{2,3,5,1,3};
+//        System.out.println(main.equationsPossible(new String[]{"c==c","f!=a","f==b","b==c"}));
+//        System.out.println(main.translateNum(25));
+//        System.out.println(main.threeSum(new int[]{-2,0,0,2,2}));
+//        System.out.println(main.kthSmallest(new int[][]{{1,5,9},{10,11,13},{12,13,15}}, 5));
+//        System.out.println(main.respace(new String[]{"looked","just","like","her","brother"},
+//        "jesslookedjustliketimherbrother"));
+        System.out.println(main.isBipartite(new int[][]{{2, 4}, {2, 3, 4}, {0, 1}, {1}, {0, 1}, {7}, {9}, {5}, {}, {6}, {12, 14}, {}, {10}, {}, {10}, {19}, {18}, {}, {16}, {15}, {23}, {23}, {}, {20, 21}, {}, {}, {27}, {26}, {}, {}, {34}, {33, 34}, {}, {31}, {30, 31}, {38, 39}, {37, 38, 39}, {36}, {35, 36}, {35, 36}, {43}, {}, {}, {40}, {}, {49}, {47, 48, 49}, {46, 48, 49}, {46, 47, 49}, {45, 46, 47, 48}}));
     }
 }
 
@@ -5031,5 +5526,27 @@ class Status {
         rSum = r;
         mSum = m;
         iSum = i;
+    }
+}
+
+class Triee {
+    Triee[] next;
+    boolean isEnd;
+
+    public Triee() {
+        next = new Triee[26];
+        isEnd = false;
+    }
+
+    public void insert(String s) {
+        Triee root = this;
+        for (int i = s.length() - 1; i >= 0; i--) {
+            int idx = s.charAt(i) - 'a';
+            if (root.next[idx] == null) {
+                root.next[idx] = new Triee();
+            }
+            root = root.next[idx];
+        }
+        root.isEnd = true;
     }
 }
